@@ -7,7 +7,17 @@ class RegisterRequest
     public string $email;
     public string $password;
     public array $errors = [];
-
+    /**
+     * Valida los datos del formulario de registro de un nuevo usuario.
+     *
+     * @param array<string, mixed> $data  Datos del formulario, normalmente $_POST
+     *
+     * Campos esperados:
+     * - full_name  string  Nombre completo del usuario
+     * - email      string  Email con formato válido
+     * - password   string  Mínimo 8 caracteres
+     * - password2  string  Debe coincidir con password
+     */
     public function __construct(array $post)
     {
         $this->fullName = htmlspecialchars(trim($post['full_name'] ?? ''), ENT_QUOTES, 'UTF-8');

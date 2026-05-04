@@ -1,18 +1,20 @@
 <?php
 namespace Jrs2a\TiendaCursos\Services;
 
-use Jrs2a\TiendaCursos\Services\CarritoService;
-use Jrs2a\TiendaCursos\Services\CompraService;
+use Jrs2a\TiendaCursos\Repositories\UsuarioRepository;
+use Jrs2a\TiendaCursos\Core\Email;
 
 class CheckoutService
 {
-    private CarritoService $carritoService;
-    private CompraService  $compraService;
+    private CarritoService    $carritoService;
+    private CompraService     $compraService;
+    private UsuarioRepository $usuarioRepository;
 
     public function __construct()
     {
-        $this->carritoService = new CarritoService();
-        $this->compraService  = new CompraService();
+        $this->carritoService    = new CarritoService();
+        $this->compraService     = new CompraService();
+        $this->usuarioRepository = new UsuarioRepository();
     }
 
     private function getAccessToken(): string
@@ -84,15 +86,42 @@ class CheckoutService
 
         return ($response['status'] ?? '') === 'COMPLETED';
     }
-
+    /**
+     * Finaliza el proceso de compra tras un pago exitoso:
+     * 1. Registra cada curso del carrito como comprado por el usuario.
+     * 2. Vacía el carrito.
+     * 3. Genera y envía la factura en PDF por email.
+     *
+     * El envío del email está en un try/catch aislado: si falla,
+     * las compras ya quedan registradas y no se interrumpe el flujo.
+     *
+     * @param int $userId ID del usuario que completó el pago
+     */
     public function completarCompra(int $userId): void
     {
-        $courseIds = $this->carritoService->obtenerCourseIds($userId);
+        // 1. Obtener cursos del carrito ANTES de vaciarlo
+        $carrito   = $this->carritoService->obtenerCarrito($userId);
+        $cursos    = $carrito['courses'];   // array de objetos Curso
+        $courseIds = array_map(fn($c) => $c->id, $cursos);
 
+        // 2. Registrar compras (igual que antes)
         foreach ($courseIds as $courseId) {
             $this->compraService->asignar($userId, $courseId);
         }
 
+        // 3. Vaciar carrito (igual que antes)
         $this->carritoService->vaciar($userId);
+
+        // 4. Enviar email de agradecimiento (no interrumpe el flujo si falla)
+        try {
+            $usuario = $this->usuarioRepository->findById($userId);
+
+            if ($usuario && !empty($cursos)) {
+                $email = new Email($usuario->email, $usuario->fullName);
+                $email->enviarCompra($cursos);
+            }
+        } catch (\Throwable $e) {
+            error_log('Error enviando email de compra: ' . $e->getMessage());
+        }
     }
 }

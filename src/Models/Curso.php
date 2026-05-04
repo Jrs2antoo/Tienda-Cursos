@@ -1,6 +1,14 @@
 <?php
 namespace Jrs2a\TiendaCursos\Models;
-
+/**
+ * Representa un curso disponible en la tienda.
+ *
+ * @property int    $id
+ * @property string $title
+ * @property string $description
+ * @property float  $price
+ * @property string $imageUrl
+ */
 class Curso
 {
     public int    $id;
@@ -16,10 +24,5 @@ class Curso
         $this->description = (string)$data['description'];
         $this->price = (float) $data['price'];
         $this->imageUrl = (string)($data['image_url'] ?? $data['imagen']);
-    }
-
-    public function getPrecioFormateado(): string
-    {
-        return number_format($this->price, 2, ',', '.') . ' €';
     }
 }

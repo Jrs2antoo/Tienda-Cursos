@@ -1,6 +1,18 @@
 <?php
 namespace Jrs2a\TiendaCursos\Models;
-
+/**
+ * Representa un curso disponible en la tienda.
+ *
+ * @property int    $id
+ * @property string $fullName;
+ * @property string $email;
+ * @property string $role;
+ * @property string $password;
+ * @property string $token;
+ * @property int $tokenExp;
+ * @property bool $confirmado;
+ * @property string $createdAt;
+ */
 class Usuario
 {
     public int    $id;
@@ -24,11 +36,6 @@ class Usuario
         $this->tokenExp = (int)   ($data['token_exp']  ?? 0);
         $this->confirmado = (bool)  ($data['confirmado'] ?? false);
         $this->createdAt = (string)($data['created_at'] ?? '');
-    }
-
-    public function esAdmin(): bool
-    {
-        return $this->role === 'admin';
     }
 
     public function estaConfirmado(): bool

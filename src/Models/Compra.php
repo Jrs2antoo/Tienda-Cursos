@@ -1,6 +1,12 @@
 <?php
 namespace Jrs2a\TiendaCursos\Models;
-
+/**
+ * Representa un curso disponible en la tienda.
+ *
+ * @property int $id
+ * @property int $userId
+ * @property string $courseId
+ */
 class Compra
 {
     public int $id;

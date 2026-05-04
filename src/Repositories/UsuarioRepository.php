@@ -80,7 +80,18 @@ class UsuarioRepository
         $this->db->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
     }
 
-    /** @return array<int, array{id:int, full_name:string, email:string, curso_ids:string, curso_titulos:string}> */
+    /**
+     * Devuelve todos los usuarios con sus cursos agregados en una sola consulta.
+     * Útil para el panel de administración de compras.
+     *
+     * @return array<int, array{
+     *     id: int,
+     *     full_name: string,
+     *     email: string,
+     *     curso_ids: string|null,      // IDs separados por coma, ej: "1,3,5"
+     *     curso_titulos: string|null   // Títulos separados por "|", ej: "PHP|Laravel|MySQL"
+     * }>
+     */
     public function findAllConCursos(): array
     {
         // Devuelve array asociativo porque mezcla datos de varias tablas

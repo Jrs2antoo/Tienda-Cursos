@@ -2,6 +2,10 @@
 namespace Jrs2a\TiendaCursos\Core;
 
 class Router {
+    /**
+     * @var array<string, array<string, callable|array{0: class-string, 1: string}>>
+     * Estructura: ['GET' => ['/ruta' => callback], 'POST' => [...]]
+     */
     protected $routes = [];
 
     public function get($path, $callback) {

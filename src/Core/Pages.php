@@ -1,7 +1,12 @@
 <?php
 namespace Jrs2a\TiendaCursos\Core;
 class Pages
-{
+{/**
+ * Renderiza una vista envuelta en el layout (header + view + footer).
+ *
+ * @param string               $pageName  Ruta relativa a Views/ sin extensión (ej: 'admin/cursos')
+ * @param array<string, mixed> $params    Variables que se inyectan en la vista via extract()
+ */
     public static function render(string $pageName, array $params = []): void
     {
         extract($params);

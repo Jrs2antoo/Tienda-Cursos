@@ -3,8 +3,15 @@ namespace Jrs2a\TiendaCursos\Core;
 
 use PDO;
 use PDOException;
-
+/**
+ * Gestiona la conexión PDO a la base de datos mediante el patrón Singleton.
+ * Reconecta automáticamente si la conexión se ha perdido.
+ */
 class Database {
+    /**
+     * Devuelve la instancia PDO compartida, creándola si no existe.
+     * Lee las credenciales de las variables de entorno DB_HOST, DB_NAME, DB_USER, DB_PASS.
+     */
     private static $connection = null;
 
     public static function connect(): PDO {

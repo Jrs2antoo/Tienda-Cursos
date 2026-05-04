@@ -11,7 +11,12 @@ class CarritoService
     {
         $this->carritoRepository = new CarritoRepository();
     }
-
+    /**
+     * Devuelve el contenido del carrito y el total calculado.
+     *
+     * @param int $userId
+     * @return array{courses: Curso[], total: float}
+     */
     public function obtenerCarrito(int $userId): array
     {
         $courses = $this->carritoRepository->findByUser($userId);

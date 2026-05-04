@@ -33,7 +33,13 @@ class CompraRepository
         $stmt->execute([$userId, $courseId]);
         return (bool) $stmt->fetch();
     }
-
+    /**
+     * Registra la compra de un curso por un usuario.
+     * Usa INSERT IGNORE, por lo que no falla si la relación ya existe.
+     *
+     * @param int $userId   ID del usuario comprador
+     * @param int $courseId ID del curso adquirido
+     */
     public function add(int $userId, int $courseId): void
     {
         $this->db->prepare("INSERT IGNORE INTO purchases (user_id, course_id) VALUES (?, ?)")

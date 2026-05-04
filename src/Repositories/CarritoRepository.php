@@ -14,7 +14,12 @@ class CarritoRepository
         $this->db = Database::connect();
     }
 
-    /** @return Curso[] */
+    /**
+     * Devuelve los cursos que tiene el usuario en el carrito.
+     * Hace JOIN con courses para devolver objetos Curso completos.
+     *
+     * @return Curso[]
+     */
     public function findByUser(int $userId): array
     {
         $stmt = $this->db->prepare("
