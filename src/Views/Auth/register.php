@@ -17,6 +17,24 @@
                         <h1 class="fs-3 fw-bold mb-1">Crea tu cuenta 🚀</h1>
                         <p class="text-muted mb-4">Regístrate gratis y empieza a aprender hoy mismo.</p>
 
+                        <?php
+                        $mensajeSesion     = $_SESSION['mensaje'] ?? '';
+                        $mensajeTipoSesion = $_SESSION['mensaje_tipo'] ?? '';
+                        unset($_SESSION['mensaje'], $_SESSION['mensaje_tipo']);
+                        ?>
+                        <?php if (!empty($mensajeSesion)): ?>
+                            <?php
+                            $alertClass = 'alert-info';
+                            $iconClass  = 'bi-envelope-check';
+                            if ($mensajeTipoSesion === 'error')   { $alertClass = 'alert-danger';  $iconClass = 'bi-exclamation-triangle'; }
+                            if ($mensajeTipoSesion === 'success') { $alertClass = 'alert-success'; $iconClass = 'bi-check-circle'; }
+                            ?>
+                            <div class="alert <?= $alertClass ?> py-2 small">
+                                <i class="bi <?= $iconClass ?> me-1"></i>
+                                <?= htmlspecialchars($mensajeSesion) ?>
+                            </div>
+                        <?php endif; ?>
+
                         <?php if (!empty($error)): ?>
                             <div class="alert alert-danger py-2 small">
                                 <i class="bi bi-exclamation-triangle me-1"></i>

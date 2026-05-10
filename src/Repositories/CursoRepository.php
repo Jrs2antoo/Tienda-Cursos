@@ -17,9 +17,12 @@ class CursoRepository
     /** @return Curso[] */
     public function findAll(): array
     {
+        $stmt = $this->db->prepare("SELECT * FROM courses ORDER BY id DESC");
+        $stmt->execute();
+
         return array_map(
             fn($row) => new Curso($row),
-            $this->db->query("SELECT * FROM courses ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC)
+            $stmt->fetchAll(PDO::FETCH_ASSOC)
         );
     }
 
@@ -34,27 +37,80 @@ class CursoRepository
 
     public function findById(int $id): ?Curso
     {
-        $stmt = $this->db->prepare("SELECT * FROM courses WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $this->db->prepare("SELECT * FROM courses WHERE id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? new Curso($row) : null;
     }
 
-    public function create(string $title, string $description, float $price, string $imageUrl): bool
+    public function create(string $title, string $description, float $price, int $stock, string $imageUrl): bool
     {
-        return $this->db->prepare("INSERT INTO courses (title, description, price, image_url) VALUES (:t,:d,:p,:i)")
-            ->execute(['t' => $title, 'd' => $description, 'p' => $price, 'i' => $imageUrl]);
+        $stmt = $this->db->prepare("
+            INSERT INTO courses (title, description, price, stock, imagen)
+            VALUES (:title, :description, :price, :stock, :image)
+        ");
+        $stmt->bindValue(':title', $title, PDO::PARAM_STR);
+        $stmt->bindValue(':description', $description, PDO::PARAM_STR);
+        $stmt->bindValue(':price', $price, PDO::PARAM_STR);
+        $stmt->bindValue(':stock', $stock, PDO::PARAM_INT);
+        $stmt->bindValue(':image', $imageUrl, PDO::PARAM_STR);
+        return $stmt->execute();
     }
 
-    public function update(int $id, string $title, string $description, float $price, string $imageUrl): bool
+    public function update(int $id, string $title, string $description, float $price, int $stock, string $imageUrl): bool
     {
-        return $this->db->prepare("UPDATE courses SET title=:t, description=:d, price=:p, image_url=:i WHERE id=:id")
-            ->execute(['t' => $title, 'd' => $description, 'p' => $price, 'i' => $imageUrl, 'id' => $id]);
+        $stmt = $this->db->prepare("
+            UPDATE courses
+            SET title = :title, description = :description, price = :price, stock = :stock, imagen = :image
+            WHERE id = :id
+        ");
+        $stmt->bindValue(':title', $title, PDO::PARAM_STR);
+        $stmt->bindValue(':description', $description, PDO::PARAM_STR);
+        $stmt->bindValue(':price', $price, PDO::PARAM_STR);
+        $stmt->bindValue(':stock', $stock, PDO::PARAM_INT);
+        $stmt->bindValue(':image', $imageUrl, PDO::PARAM_STR);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 
     public function delete(int $id): void
     {
-        $this->db->prepare("DELETE FROM purchases WHERE course_id = ?")->execute([$id]);
-        $this->db->prepare("DELETE FROM courses WHERE id = ?")->execute([$id]);
+        $stmt = $this->db->prepare("DELETE FROM purchases WHERE course_id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $stmt = $this->db->prepare("DELETE FROM courses WHERE id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    public function hasStock(int $id): bool
+    {
+        $stmt = $this->db->prepare("SELECT stock FROM courses WHERE id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
+    public function decreaseStock(int $id): bool
+    {
+        $stmt = $this->db->prepare("
+            UPDATE courses
+            SET stock = stock - 1
+            WHERE id = :id AND stock > 0
+        ");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
+    public function increaseStock(int $id): void
+    {
+        $stmt = $this->db->prepare("UPDATE courses SET stock = stock + 1 WHERE id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
     }
 }

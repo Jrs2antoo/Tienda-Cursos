@@ -16,17 +16,25 @@ class Email {
     }
 
     public function enviarConfirmacion(): void {
+        $logFile = __DIR__ . '/../../../smtp_debug.log';
+
         $mail = new PHPMailer(true);
         $mail->isSMTP();
-        $mail->Host     = $_ENV['SMTP_HOST'];
+        $mail->Host       = $_ENV['SMTP_HOST'];
         $mail->SMTPAuth   = true;
-        $mail->Port     = $_ENV['SMTP_PORT'];
-        $mail->Username = $_ENV['SMTP_USER'];
-        $mail->Password = $_ENV['SMTP_PASS'];
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 465;
+        $mail->Username   = $_ENV['SMTP_USER'];
+        $mail->Password   = $_ENV['SMTP_PASS'];
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Timeout    = 5;
 
-        $mail->setFrom('noreply@tiendacursos.com', 'TiendaCursos');
-        $mail->addAddress($this->email);
+        $mail->SMTPDebug   = 2;
+        $mail->Debugoutput = function(string $str, int $level) use ($logFile) {
+            file_put_contents($logFile, $str . "\n", FILE_APPEND);
+        };
+
+        $mail->setFrom($_ENV['SMTP_USER'], $_ENV['SMTP_NAME']);
+        $mail->addAddress($this->email, $this->nombre);
         $mail->Subject = 'Confirma tu cuenta';
         $mail->isHTML(true);
         $mail->CharSet = 'UTF-8';
@@ -40,18 +48,18 @@ class Email {
             <p>Si no fuiste tú, ignora este mensaje.</p>
         ";
 
-        if(!$mail->send()) {
-            echo $mail->ErrorInfo;
-        }
+        $mail->send();
+
+        file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] Email enviado correctamente.\n", FILE_APPEND);
     }
 
     public function enviarContacto(string $asunto, string $mensaje): void {
         $mail = new PHPMailer(true);
 
         $mail->isSMTP();
-        $mail->Host     = $_ENV['SMTP_HOST'];
-        $mail->SMTPAuth   = true;
-        $mail->Port     = $_ENV['SMTP_PORT'];
+        $mail->Host = $_ENV['SMTP_HOST'];
+        $mail->SMTPAuth = true;
+        $mail->Port = $_ENV['SMTP_PORT'];
         $mail->Username = $_ENV['SMTP_USER'];
         $mail->Password = $_ENV['SMTP_PASS'];
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
@@ -89,14 +97,15 @@ class Email {
         $mail->isSMTP();
         $mail->Host       = $_ENV['SMTP_HOST'];
         $mail->SMTPAuth   = true;
-        $mail->Port       = $_ENV['SMTP_PORT'];
+        $mail->Port       = 465;
         $mail->Username   = $_ENV['SMTP_USER'];
         $mail->Password   = $_ENV['SMTP_PASS'];
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Timeout    = 5;
 
-        $mail->setFrom('noreply@tiendacursos.com', 'TiendaCursos');
+        $mail->setFrom($_ENV['SMTP_USER'], $_ENV['SMTP_NAME']);
         $mail->addAddress($this->email, $this->nombre);
-        $mail->Subject = '¡Gracias por tu compra en TiendaCursos!';
+        $mail->Subject = 'Gracias por tu compra en TiendaCursos!';
         $mail->isHTML(true);
         $mail->CharSet = 'UTF-8';
 
@@ -106,14 +115,16 @@ class Email {
         }
 
         $mail->Body = "
-            <h2>¡Gracias por tu compra, {$this->nombre}!</h2>
+            <h2>Gracias por tu compra, {$this->nombre}!</h2>
             <p>Hemos procesado tu pedido correctamente. Ya puedes acceder a tus cursos:</p>
             <ul>{$listaCursos}</ul>
             <p>Un saludo,<br><strong>El equipo de TiendaCursos</strong></p>
         ";
 
-        if (!$mail->send()) {
-            error_log('Error enviando email de compra: ' . $mail->ErrorInfo);
+        try {
+            $mail->send();
+        } catch (\Throwable $e) {
+            error_log('Error enviando email de compra: ' . $e->getMessage());
         }
     }
 
@@ -129,29 +140,31 @@ class Email {
         $mail->isSMTP();
         $mail->Host       = $_ENV['SMTP_HOST'];
         $mail->SMTPAuth   = true;
-        $mail->Port       = $_ENV['SMTP_PORT'];
+        $mail->Port       = 465;
         $mail->Username   = $_ENV['SMTP_USER'];
         $mail->Password   = $_ENV['SMTP_PASS'];
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Timeout    = 5;
 
-        $mail->setFrom('noreply@tiendacursos.com', 'TiendaCursos');
+        $mail->setFrom($_ENV['SMTP_USER'], $_ENV['SMTP_NAME']);
         $mail->addAddress($this->email, $this->nombre);
-        $mail->Subject  = '¡Gracias por tu compra! Tu factura de TiendaCursos';
+        $mail->Subject  = 'Gracias por tu compra! Tu factura de TiendaCursos';
         $mail->isHTML(true);
         $mail->CharSet  = 'UTF-8';
 
         $mail->Body = "
-            <h2>¡Gracias por tu compra, {$this->nombre}!</h2>
-            <p>Hemos procesado tu pedido correctamente. Adjunto encontrarás la factura en PDF.</p>
+            <h2>Gracias por tu compra, {$this->nombre}!</h2>
+            <p>Hemos procesado tu pedido correctamente. Adjunto encontraras la factura en PDF.</p>
             <p>Ya puedes acceder a tus cursos desde tu panel de usuario.</p>
             <p>Un saludo,<br><strong>El equipo de TiendaCursos</strong></p>
         ";
 
-        // Adjuntar el PDF directamente desde memoria (sin guardar en disco)
         $mail->addStringAttachment($pdfBytes, $filename, 'base64', 'application/pdf');
 
-        if (!$mail->send()) {
-            error_log('Error enviando factura: ' . $mail->ErrorInfo);
+        try {
+            $mail->send();
+        } catch (\Throwable $e) {
+            error_log('Error enviando factura: ' . $e->getMessage());
         }
     }
 }

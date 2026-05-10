@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-use Jrs2a\TiendaCursos\Core\Database;
 use Jrs2a\TiendaCursos\Core\Router;
 
 //.env

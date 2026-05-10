@@ -1,5 +1,7 @@
 <?php
 
+global $router;
+
 use Jrs2a\TiendaCursos\Controllers\AuthController;
 use Jrs2a\TiendaCursos\Controllers\DashboardController;
 use Jrs2a\TiendaCursos\Controllers\HomeController;
@@ -10,6 +12,7 @@ use Jrs2a\TiendaCursos\Controllers\UserController;
 use Jrs2a\TiendaCursos\Controllers\ContactoController;
 use Jrs2a\TiendaCursos\Controllers\CheckoutController;
 
+//vista main
 $router->get('/', [Jrs2a\TiendaCursos\Controllers\HomeController::class, 'index']);
 
 $router->get('/dashboard', [DashboardController::class, 'index']);
@@ -22,9 +25,6 @@ $router->get('/auth/google', [AuthController::class, 'googleLogin']);
 
 //logout
 $router->get('/logout', [AuthController::class, 'logout']);
-
-//vista main
-$router->get('/', [HomeController::class, 'index']);
 
 //  Contacto
 $router->get('/contacto', [ContactoController::class, 'index']);

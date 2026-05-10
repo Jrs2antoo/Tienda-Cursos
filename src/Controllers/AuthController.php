@@ -19,7 +19,8 @@ class AuthController
 
     public function showLogin(): void
     {
-        Pages::render('Auth/login', ['title' => 'Iniciar sesión']);
+        if (isset($_SESSION['user_id'])) { header('Location: /tiendaCursos/'); exit; }
+        Pages::render('Auth/login', ['title' => 'Iniciar sesion']);
     }
 
     public function login(): void
@@ -43,13 +44,12 @@ class AuthController
             $_SESSION['role']      = $user->role;
             header("Location: /tiendaCursos/");
         } else {
-            // Comprobar si existe pero no está verificado
             $userSinVerificar = $this->usuarioService->obtenerPorEmail($request->email);
             if ($userSinVerificar && !$userSinVerificar->estaConfirmado()) {
-                $_SESSION['mensaje']      = "Tu cuenta aún no está verificada. Revisa tu bandeja de entrada y haz clic en el enlace de confirmación que te enviamos por correo.";
+                $_SESSION['mensaje']      = "Tu cuenta aun no esta verificada. Revisa tu bandeja de entrada y haz clic en el enlace de confirmacion que te enviamos por correo.";
                 $_SESSION['mensaje_tipo'] = 'error';
             } else {
-                $_SESSION['mensaje']      = "El email o la contraseña no son correctos.";
+                $_SESSION['mensaje']      = "El email o la contrasena no son correctos.";
                 $_SESSION['mensaje_tipo'] = 'error';
             }
             header("Location: /tiendaCursos/login");
@@ -92,6 +92,7 @@ class AuthController
 
     public function showRegister(): void
     {
+        if (isset($_SESSION['user_id'])) { header('Location: /tiendaCursos/'); exit; }
         Pages::render('Auth/register', ['title' => 'Crear una cuenta']);
     }
 
@@ -107,8 +108,16 @@ class AuthController
         }
 
         if ($this->usuarioService->emailExiste($request->email)) {
-            $_SESSION['mensaje']      = "Este email ya está registrado.";
-            $_SESSION['mensaje_tipo'] = 'error';
+            $usuarioExistente = $this->usuarioService->obtenerPorEmail($request->email);
+
+            if ($usuarioExistente && !$usuarioExistente->estaConfirmado()) {
+                $_SESSION['mensaje']      = "Este email ya esta registrado pero pendiente de confirmacion. Revisa tu bandeja de entrada.";
+                $_SESSION['mensaje_tipo'] = 'info';
+            } else {
+                $_SESSION['mensaje']      = "Este email ya esta registrado. Has olvidado tu contrasena?";
+                $_SESSION['mensaje_tipo'] = 'error';
+            }
+
             header("Location: /tiendaCursos/registro");
             exit;
         }
@@ -116,20 +125,30 @@ class AuthController
         $result = $this->usuarioService->registrar($request->fullName, $request->email, $request->password);
 
         if ($result['success']) {
+            $_SESSION['mensaje']      = "Registro exitoso! Revisa tu bandeja de entrada (o carpeta de spam) y confirma tu cuenta.";
+            $_SESSION['mensaje_tipo'] = 'info';
+            header("Location: /tiendaCursos/login");
+
+            if (ob_get_level()) ob_end_clean();
+            header("Content-Length: 0");
+            header("Connection: close");
+            ob_start();
+            ob_end_flush();
+            flush();
+            ignore_user_abort(true);
+            session_write_close();
+
             try {
                 (new Email($request->email, $request->fullName, $result['token']))->enviarConfirmacion();
-                $_SESSION['mensaje']      = "¡Registro exitoso! Revisa tu bandeja de entrada (o la carpeta de spam) y haz clic en el enlace de confirmación para activar tu cuenta.";
-                $_SESSION['mensaje_tipo'] = 'info';
-            } catch (\Exception $e) {
-                $_SESSION['mensaje']      = "Hubo un error al enviar el correo de confirmación.";
-                $_SESSION['mensaje_tipo'] = 'error';
+            } catch (\Throwable $e) {
+                error_log('[EMAIL ERROR] ' . $e->getMessage());
             }
-            header("Location: /tiendaCursos/login");
-        } else {
-            $_SESSION['mensaje']      = "Error al registrar.";
-            $_SESSION['mensaje_tipo'] = 'error';
-            header("Location: /tiendaCursos/registro");
+            exit;
         }
+
+        $_SESSION['mensaje']      = "Error al registrar.";
+        $_SESSION['mensaje_tipo'] = 'error';
+        header("Location: /tiendaCursos/registro");
         exit;
     }
 
@@ -138,13 +157,13 @@ class AuthController
         $token = $_GET['token'] ?? '';
 
         if (empty($token)) {
-            die("Token no válido.");
+            die("Token no valido.");
         }
 
         if ($this->usuarioService->confirmarCuenta($token)) {
             header("Location: /tiendaCursos/login?verified=1");
         } else {
-            die("El token es inválido o ha expirado. Vuelve a registrarte.");
+            die("El token es invalido o ha expirado. Vuelve a registrarte.");
         }
         exit;
     }

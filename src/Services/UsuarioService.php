@@ -39,7 +39,7 @@ class UsuarioService
     {
         $passwordHash = Security::encryptPassw($password);
         $token        = Security::createToken(Security::secretKey(), ['mail' => $email]);
-        $tokenExp     = time() + 3600;
+        $tokenExp     = time() + 60;
 
         $success = $this->usuarioRepository->create($fullName, $email, $passwordHash, $token, $tokenExp);
 

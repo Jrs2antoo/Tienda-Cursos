@@ -31,13 +31,16 @@
                                 <span class="badge bg-primary-subtle text-primary mb-2 align-self-start">Curso</span>
                                 <h5 class="card-title fw-semibold"><?= htmlspecialchars($course->title) ?></h5>
                                 <p class="card-text text-muted small flex-grow-1"><?= htmlspecialchars($course->description) ?></p>
-                                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-3 border-top">
                                     <span class="fs-5 fw-bold text-primary">
                                         <?= number_format($course->price, 2) ?> €
                                     </span>
+                                    <span class="badge <?= $course->stock > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' ?>">
+                                        <?= $course->stock > 0 ? 'Stock: ' . $course->stock : 'Sin stock' ?>
+                                    </span>
                                     <form method="POST" action="/tiendaCursos/carrito/add">
                                         <input type="hidden" name="curso_id" value="<?= $course->id ?>">
-                                        <button type="submit" class="btn btn-primary btn-sm">
+                                        <button type="submit" class="btn btn-primary btn-sm" <?= $course->stock <= 0 ? 'disabled' : '' ?>>
                                             <i class="bi bi-cart-plus me-1"></i>Añadir
                                         </button>
                                     </form>

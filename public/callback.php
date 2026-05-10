@@ -36,13 +36,19 @@ if (isset($_GET['code'])) {
     $fullName = $googleUser->name;
 
     $db   = Database::connect();
-    $stmt = $db->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
+    $stmt = $db->prepare("SELECT * FROM users WHERE email = :email");
+    $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+    $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
-        $insert = $db->prepare("INSERT INTO users (full_name, email, password, confirmado) VALUES (?, ?, '', 1)");
-        $insert->execute([$fullName, $email]);
+        $insert = $db->prepare("
+            INSERT INTO users (full_name, email, password, confirmado)
+            VALUES (:full_name, :email, '', 1)
+        ");
+        $insert->bindValue(':full_name', $fullName, PDO::PARAM_STR);
+        $insert->bindValue(':email', $email, PDO::PARAM_STR);
+        $insert->execute();
         $userId = $db->lastInsertId();
         $role   = 'user';
     } else {

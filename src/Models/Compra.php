@@ -15,8 +15,8 @@ class Compra
 
     public function __construct(array $data)
     {
-        $this->id       = (int)$data['id'];
-        $this->userId   = (int)$data['user_id'];
+        $this->id = (int)$data['id'];
+        $this->userId = (int)$data['user_id'];
         $this->courseId = (int)$data['course_id'];
     }
 }

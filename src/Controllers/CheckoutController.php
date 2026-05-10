@@ -2,6 +2,7 @@
 namespace Jrs2a\TiendaCursos\Controllers;
 
 use Jrs2a\TiendaCursos\Core\Pages;
+use Jrs2a\TiendaCursos\Middleware\Middleware;
 use Jrs2a\TiendaCursos\Services\CarritoService;
 use Jrs2a\TiendaCursos\Services\CheckoutService;
 
@@ -28,17 +29,22 @@ class CheckoutController
 
     public function index(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
         $data = $this->carritoService->obtenerCarrito((int)$_SESSION['user_id']);
         $this->pages->render("compras/checkout", array_merge($data, ['title' => 'Finalizar compra']));
     }
 
     public function pagar(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
         $data = $this->carritoService->obtenerCarrito((int)$_SESSION['user_id']);
 
         if (empty($data['courses'])) {
+            header("Location: /tiendaCursos/carrito");
+            exit;
+        }
+
+        if (!$this->carritoService->todosDisponibles((int)$_SESSION['user_id'])) {
             header("Location: /tiendaCursos/carrito");
             exit;
         }
@@ -55,7 +61,7 @@ class CheckoutController
 
     public function exito(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
         $orderId = $_GET['token'] ?? null;
 
         if (!$orderId) {

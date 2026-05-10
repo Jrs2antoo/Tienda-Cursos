@@ -40,9 +40,16 @@
                                 </div>
                             </div>
 
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Stock</label>
+                                <input type="number" class="form-control" name="stock"
+                                       min="0" step="1"
+                                       value="<?= $curso->stock ?? '0' ?>">
+                            </div>
+
                             <div class="mb-4">
                                 <label class="form-label fw-semibold">URL de imagen</label>
-                                <input type="url" class="form-control" name="image_url"
+                                <input type="text" class="form-control" name="image_url"
                                        placeholder="https://…"
                                        value="<?= htmlspecialchars($curso->imageUrl ?? '') ?>">
                             </div>

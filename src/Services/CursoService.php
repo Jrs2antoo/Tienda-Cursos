@@ -30,14 +30,14 @@ class CursoService
         return $this->cursoRepository->findById($id);
     }
 
-    public function crear(string $title, string $description, float $price, string $imageUrl): bool
+    public function crear(string $title, string $description, float $price, int $stock, string $imageUrl): bool
     {
-        return $this->cursoRepository->create($title, $description, $price, $imageUrl);
+        return $this->cursoRepository->create($title, $description, $price, $stock, $imageUrl);
     }
 
-    public function actualizar(int $id, string $title, string $description, float $price, string $imageUrl): bool
+    public function actualizar(int $id, string $title, string $description, float $price, int $stock, string $imageUrl): bool
     {
-        return $this->cursoRepository->update($id, $title, $description, $price, $imageUrl);
+        return $this->cursoRepository->update($id, $title, $description, $price, $stock, $imageUrl);
     }
 
     public function eliminar(int $id): void

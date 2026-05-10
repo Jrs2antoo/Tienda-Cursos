@@ -2,11 +2,13 @@
 namespace Jrs2a\TiendaCursos\Controllers;
 
 use Jrs2a\TiendaCursos\Core\Pages;
+use Jrs2a\TiendaCursos\Middleware\Middleware;
 use Jrs2a\TiendaCursos\Requests\CursoRequest;
 use Jrs2a\TiendaCursos\Requests\UsuarioRequest;
 use Jrs2a\TiendaCursos\Services\CompraService;
 use Jrs2a\TiendaCursos\Services\CursoService;
 use Jrs2a\TiendaCursos\Services\UsuarioService;
+
 
 class AdminController
 {
@@ -21,17 +23,9 @@ class AdminController
         $this->compraService  = new CompraService();
     }
 
-    private function requireAdmin(): void
-    {
-        if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-            header("Location: /tiendaCursos/");
-            exit;
-        }
-    }
-
     public function index(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         Pages::render('admin/menu');
     }
 
@@ -39,14 +33,14 @@ class AdminController
 
     public function usuarios(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $usuarios = $this->usuarioService->obtenerTodos();
         Pages::render('admin/usuarios', compact('usuarios'));
     }
 
     public function editarUsuario(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $id = (int)($_GET['id'] ?? 0);
         $usuario = $this->usuarioService->obtenerPorId($id);
 
@@ -60,7 +54,7 @@ class AdminController
 
     public function actualizarUsuario(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $request = new UsuarioRequest($_POST);
 
         if (!$request->isValid()) {
@@ -83,7 +77,7 @@ class AdminController
 
     public function borrarUsuario(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $id = (int)($_POST['id'] ?? 0);
 
         $this->usuarioService->eliminar($id, (int)$_SESSION['user_id']);
@@ -96,14 +90,14 @@ class AdminController
 
     public function cursos(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $courses = $this->cursoService->obtenerTodos();
         Pages::render('admin/cursos', compact('courses'));
     }
 
     public function editarCurso(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $id    = (int)($_GET['id'] ?? 0);
         $curso = $id ? $this->cursoService->obtenerPorId($id) : null;
         Pages::render('admin/editar-curso', compact('curso'));
@@ -111,7 +105,7 @@ class AdminController
 
     public function actualizarCurso(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $request = new CursoRequest($_POST);
 
         if (!$request->isValid()) {
@@ -120,9 +114,9 @@ class AdminController
         }
 
         if ($request->id) {
-            $this->cursoService->actualizar($request->id, $request->title, $request->description, $request->price, $request->imageUrl);
+            $this->cursoService->actualizar($request->id, $request->title, $request->description, $request->price, $request->stock, $request->imageUrl);
         } else {
-            $this->cursoService->crear($request->title, $request->description, $request->price, $request->imageUrl);
+            $this->cursoService->crear($request->title, $request->description, $request->price, $request->stock, $request->imageUrl);
         }
 
         header("Location: /tiendaCursos/admin/cursos");
@@ -131,7 +125,7 @@ class AdminController
 
     public function eliminarCurso(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $id = (int)($_POST['id'] ?? 0);
         $this->cursoService->eliminar($id);
         header("Location: /tiendaCursos/admin/cursos");
@@ -142,7 +136,7 @@ class AdminController
 
     public function compras(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $usuarios = $this->usuarioService->obtenerTodosConCursos();
         $cursos   = $this->cursoService->obtenerTodos();
         Pages::render('admin/compras', compact('usuarios', 'cursos'));
@@ -150,7 +144,7 @@ class AdminController
 
     public function asignarCurso(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $userId   = (int)($_POST['user_id']   ?? 0);
         $courseId = (int)($_POST['course_id'] ?? 0);
         $this->compraService->asignar($userId, $courseId);
@@ -160,7 +154,7 @@ class AdminController
 
     public function quitarCurso(): void
     {
-        $this->requireAdmin();
+        Middleware::requireAdmin();
         $userId   = (int)($_POST['user_id']   ?? 0);
         $courseId = (int)($_POST['course_id'] ?? 0);
         $this->compraService->quitar($userId, $courseId);

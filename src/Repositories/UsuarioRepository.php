@@ -17,67 +17,94 @@ class UsuarioRepository
     /** @return Usuario[] */
     public function findAll(): array
     {
+        $stmt = $this->db->prepare("SELECT id, full_name, email, role, created_at FROM users ORDER BY id");
+        $stmt->execute();
+
         return array_map(
             fn($row) => new Usuario($row),
-            $this->db->query("SELECT id, full_name, email, role, created_at FROM users ORDER BY id")
-                ->fetchAll(PDO::FETCH_ASSOC)
+            $stmt->fetchAll(PDO::FETCH_ASSOC)
         );
     }
 
     public function findById(int $id): ?Usuario
     {
-        $stmt = $this->db->prepare("SELECT id, full_name, email, role FROM users WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $this->db->prepare("SELECT id, full_name, email, role FROM users WHERE id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? new Usuario($row) : null;
     }
 
     public function findByEmail(string $email): ?Usuario
     {
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->execute([$email]);
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE email = :email");
+        $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+        $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? new Usuario($row) : null;
     }
 
     public function findByToken(string $token): ?Usuario
     {
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE token = ?");
-        $stmt->execute([$token]);
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE token = :token");
+        $stmt->bindValue(':token', $token, PDO::PARAM_STR);
+        $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? new Usuario($row) : null;
     }
 
     public function create(string $fullName, string $email, string $passwordHash, string $token, int $tokenExp): bool
     {
-        return $this->db->prepare("INSERT INTO users (full_name, email, password, token, token_exp, confirmado) VALUES (?, ?, ?, ?, ?, 0)")
-            ->execute([$fullName, $email, $passwordHash, $token, $tokenExp]);
+        $stmt = $this->db->prepare("
+            INSERT INTO users (full_name, email, password, token, token_exp, confirmado)
+            VALUES (:full_name, :email, :password, :token, :token_exp, 0)
+        ");
+        $stmt->bindValue(':full_name', $fullName, PDO::PARAM_STR);
+        $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+        $stmt->bindValue(':password', $passwordHash, PDO::PARAM_STR);
+        $stmt->bindValue(':token', $token, PDO::PARAM_STR);
+        $stmt->bindValue(':token_exp', $tokenExp, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 
     public function update(int $id, string $fullName, string $email, string $role, ?string $passwordHash = null): bool
     {
         $sql    = "UPDATE users SET full_name = :name, email = :email, role = :role";
-        $params = ['name' => $fullName, 'email' => $email, 'role' => $role, 'id' => $id];
 
         if ($passwordHash !== null) {
-            $sql           .= ", password = :pass";
-            $params['pass'] = $passwordHash;
+            $sql .= ", password = :pass";
         }
 
         $sql .= " WHERE id = :id";
-        return $this->db->prepare($sql)->execute($params);
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':name', $fullName, PDO::PARAM_STR);
+        $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+        $stmt->bindValue(':role', $role, PDO::PARAM_STR);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+
+        if ($passwordHash !== null) {
+            $stmt->bindValue(':pass', $passwordHash, PDO::PARAM_STR);
+        }
+
+        return $stmt->execute();
     }
 
     public function confirmar(int $id): bool
     {
-        return $this->db->prepare("UPDATE users SET confirmado = 1, token = '', token_exp = 0 WHERE id = ?")
-            ->execute([$id]);
+        $stmt = $this->db->prepare("UPDATE users SET confirmado = 1, token = '', token_exp = 0 WHERE id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 
     public function delete(int $id): void
     {
-        $this->db->prepare("DELETE FROM purchases WHERE user_id = ?")->execute([$id]);
-        $this->db->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
+        $stmt = $this->db->prepare("DELETE FROM purchases WHERE user_id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $stmt = $this->db->prepare("DELETE FROM users WHERE id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
     }
 
     /**
@@ -95,7 +122,7 @@ class UsuarioRepository
     public function findAllConCursos(): array
     {
         // Devuelve array asociativo porque mezcla datos de varias tablas
-        return $this->db->query("
+        $stmt = $this->db->prepare("
             SELECT u.id, u.full_name, u.email,
                    GROUP_CONCAT(c.id ORDER BY c.title SEPARATOR ',')    AS curso_ids,
                    GROUP_CONCAT(c.title ORDER BY c.title SEPARATOR '|') AS curso_titulos
@@ -104,6 +131,9 @@ class UsuarioRepository
             LEFT JOIN courses c   ON p.course_id = c.id
             GROUP BY u.id
             ORDER BY u.full_name
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        ");
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

@@ -2,6 +2,7 @@
 namespace Jrs2a\TiendaCursos\Controllers;
 
 use Jrs2a\TiendaCursos\Core\Pages;
+use Jrs2a\TiendaCursos\Middleware\Middleware;
 use Jrs2a\TiendaCursos\Services\CarritoService;
 
 class CarritoController
@@ -15,28 +16,29 @@ class CarritoController
         $this->pages          = new Pages();
     }
 
-    private function requireLogin(): void
-    {
-        if (empty($_SESSION['user_id'])) {
-            header("Location: /tiendaCursos/login");
-            exit;
-        }
-    }
-
     public function index(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
         $data = $this->carritoService->obtenerCarrito((int)$_SESSION['user_id']);
         $this->pages->render("compras/carrito", $data);
     }
 
     public function add(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
+
         $courseId = (int)($_POST['curso_id'] ?? 0);
 
         if ($courseId > 0) {
-            $this->carritoService->agregar((int)$_SESSION['user_id'], $courseId);
+
+            $result = $this->carritoService->agregar(
+                (int)$_SESSION['user_id'],
+                $courseId
+            );
+
+            if ($result === 'already_owned') {
+                $_SESSION['error'] = 'Ya tienes este curso comprado.';
+            }
         }
 
         header("Location: /tiendaCursos/carrito");
@@ -45,7 +47,7 @@ class CarritoController
 
     public function eliminar(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
         $courseId = (int)($_POST['curso_id'] ?? 0);
 
         if ($courseId > 0) {
@@ -55,4 +57,5 @@ class CarritoController
         header("Location: /tiendaCursos/carrito");
         exit;
     }
+
 }

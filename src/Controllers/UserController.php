@@ -2,9 +2,10 @@
 namespace Jrs2a\TiendaCursos\Controllers;
 
 use Jrs2a\TiendaCursos\Core\Pages;
+use Jrs2a\TiendaCursos\Middleware\Middleware;
+use Jrs2a\TiendaCursos\Requests\UsuarioRequest;
 use Jrs2a\TiendaCursos\Services\CompraService;
 use Jrs2a\TiendaCursos\Services\UsuarioService;
-use Jrs2a\TiendaCursos\Requests\UsuarioRequest;
 
 class UserController
 {
@@ -19,24 +20,16 @@ class UserController
         $this->pages          = new Pages();
     }
 
-    private function requireLogin(): void
-    {
-        if (!isset($_SESSION['user_id'])) {
-            header("Location: /tiendaCursos/login");
-            exit;
-        }
-    }
-
     public function misCursos(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
         $courses = $this->compraService->obtenerCursosDeUsuario((int)$_SESSION['user_id']);
         $this->pages->render("Cursos/mis-cursos", compact('courses'));
     }
 
     public function pedidos(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
         $userId  = (int)$_SESSION['user_id'];
         $pedidos = $this->compraService->obtenerCursosDeUsuario($userId);
         $this->pages->render("compras/pedidos", compact('pedidos'));
@@ -44,7 +37,7 @@ class UserController
 
     public function perfil(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
         $userId = (int)$_SESSION['user_id'];
         $user   = $this->usuarioService->obtenerPorId($userId);
         $this->pages->render("perfil/perfil", ['user' => $user, 'errors' => [], 'success' => false]);
@@ -52,7 +45,7 @@ class UserController
 
     public function actualizarPerfil(): void
     {
-        $this->requireLogin();
+        Middleware::requireLogin();
         $userId  = (int)$_SESSION['user_id'];
 
         // Forzar role = user (el usuario no puede cambiarse el rol)

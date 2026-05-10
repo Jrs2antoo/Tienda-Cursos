@@ -2,6 +2,16 @@
     <div class="container">
 
         <h1 class="fw-bold mb-1">Tu Carrito</h1>
+        <?php if (isset($_SESSION['error'])): ?>
+
+            <div class="alert alert-danger alert-dismissible fade show">
+                <?= $_SESSION['error'] ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <?php unset($_SESSION['error']); ?>
+
+        <?php endif; ?>
         <p class="text-muted mb-4">
             <?= count($courses) ?> <?= count($courses) === 1 ? 'curso' : 'cursos' ?> en tu carrito
         </p>
@@ -15,6 +25,7 @@
             </div>
 
         <?php else: ?>
+            <?php $haySinStock = !empty(array_filter($courses, fn($course) => $course->stock <= 0)); ?>
             <div class="row g-4">
 
                 <!-- ITEMS -->
@@ -37,6 +48,11 @@
                                     <div class="flex-grow-1">
                                         <h5 class="fw-semibold mb-1"><?= htmlspecialchars($course->title) ?></h5>
                                         <p class="text-muted small mb-0"><?= htmlspecialchars($course->description) ?></p>
+                                        <?php if ($course->stock <= 0): ?>
+                                            <span class="badge bg-danger-subtle text-danger mt-2">Sin stock</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-success-subtle text-success mt-2">Stock: <?= $course->stock ?></span>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="text-end flex-shrink-0">
                                         <div class="fs-5 fw-bold text-primary mb-3">
@@ -71,7 +87,11 @@
                                 <span class="text-primary"><?= number_format($total, 2) ?> €</span>
                             </div>
                             <div class="d-grid">
-                                <a href ="/tiendaCursos/checkout" class="btn btn-warning fw-semibold py-2">Finalizar compra →</a>
+                                <?php if ($haySinStock): ?>
+                                    <button class="btn btn-warning fw-semibold py-2" disabled>Finalizar compra →</button>
+                                <?php else: ?>
+                                    <a href ="/tiendaCursos/checkout" class="btn btn-warning fw-semibold py-2">Finalizar compra →</a>
+                                <?php endif; ?>
                             </div>
                             <div class="alert alert-success small mt-3 mb-0 py-2">
                                 <i class="bi bi-lock-fill me-1"></i>Pago 100% seguro.

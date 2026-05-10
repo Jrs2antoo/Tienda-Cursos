@@ -96,6 +96,9 @@
                                 <p class="card-text text-muted small flex-grow-1">
                                     <?= htmlspecialchars($course->description) ?>
                                 </p>
+                                <span class="badge <?= $course->stock > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' ?> align-self-start">
+                                    <?= $course->stock > 0 ? 'Stock: ' . $course->stock : 'Sin stock' ?>
+                                </span>
                                 <div class="d-flex justify-content-between align-items-center mt-3">
                                     <span class="fs-5 fw-bold text-primary">
                                         <?= number_format($course->price, 2) ?> €

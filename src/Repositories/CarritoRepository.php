@@ -25,16 +25,18 @@ class CarritoRepository
         $stmt = $this->db->prepare("
             SELECT c.* FROM carrito ca
             JOIN courses c ON ca.course_id = c.id
-            WHERE ca.user_id = ?
+            WHERE ca.user_id = :user_id
         ");
-        $stmt->execute([$userId]);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return array_map(fn($row) => new Curso($row), $rows);}
 
     public function findCourseIdsByUser(int $userId): array
     {
-        $stmt = $this->db->prepare("SELECT course_id FROM carrito WHERE user_id = ?");
-        $stmt->execute([$userId]);
+        $stmt = $this->db->prepare("SELECT course_id FROM carrito WHERE user_id = :user_id");
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
 
         return array_column(
             $stmt->fetchAll(PDO::FETCH_ASSOC),
@@ -44,18 +46,24 @@ class CarritoRepository
 
     public function add(int $userId, int $courseId): void
     {
-        $this->db->prepare("INSERT IGNORE INTO carrito (user_id, course_id) VALUES (?, ?)")
-            ->execute([$userId, $courseId]);
+        $stmt = $this->db->prepare("INSERT IGNORE INTO carrito (user_id, course_id) VALUES (:user_id, :course_id)");
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':course_id', $courseId, PDO::PARAM_INT);
+        $stmt->execute();
     }
 
     public function remove(int $userId, int $courseId): void
     {
-        $this->db->prepare("DELETE FROM carrito WHERE user_id = ? AND course_id = ?")
-            ->execute([$userId, $courseId]);
+        $stmt = $this->db->prepare("DELETE FROM carrito WHERE user_id = :user_id AND course_id = :course_id");
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':course_id', $courseId, PDO::PARAM_INT);
+        $stmt->execute();
     }
 
     public function clearByUser(int $userId): void
     {
-        $this->db->prepare("DELETE FROM carrito WHERE user_id = ?")->execute([$userId]);
+        $stmt = $this->db->prepare("DELETE FROM carrito WHERE user_id = :user_id");
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
     }
 }

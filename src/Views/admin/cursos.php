@@ -22,6 +22,7 @@
                             <th class="ps-4">ID</th>
                             <th>Título</th>
                             <th>Precio</th>
+                            <th>Stock</th>
                             <th class="text-end pe-4">Acciones</th>
                         </tr>
                         </thead>
@@ -31,6 +32,11 @@
                                 <td class="ps-4 text-muted small">#<?= $c->id ?></td>
                                 <td class="fw-semibold"><?= htmlspecialchars($c->title) ?></td>
                                 <td class="text-primary fw-semibold"><?= number_format($c->price, 2) ?> €</td>
+                                <td>
+                                    <span class="badge <?= $c->stock > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' ?>">
+                                        <?= $c->stock ?>
+                                    </span>
+                                </td>
                                 <td class="text-end pe-4">
                                     <a href="/tiendaCursos/admin/cursos/editar?id=<?= $c->id ?>"
                                        class="btn btn-sm btn-outline-primary me-1">
