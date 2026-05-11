@@ -3,7 +3,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 require __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config/config.php';
 
 // Cargar variables de entorno
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');

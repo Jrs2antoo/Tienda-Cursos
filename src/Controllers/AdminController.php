@@ -91,7 +91,7 @@ class AdminController
     public function cursos(): void
     {
         Middleware::requireAdmin();
-        $courses = $this->cursoService->obtenerTodos();
+        $courses = $this->cursoService->obtenerTodosAdmin();
         Pages::render('admin/cursos', compact('courses'));
     }
 
@@ -126,8 +126,17 @@ class AdminController
     public function eliminarCurso(): void
     {
         Middleware::requireAdmin();
-        $id = (int)($_POST['id'] ?? 0);
-        $this->cursoService->eliminar($id);
+        $id    = (int)($_POST['id'] ?? 0);
+        $curso = $this->cursoService->obtenerPorId($id);
+
+        if ($curso) {
+            if ($curso->activo) {
+                $this->cursoService->eliminar($id);       // desactiva
+            } else {
+                $this->cursoService->reactivar($id);      // vuelve a activar
+            }
+        }
+
         header("Location: /tiendaCursos/admin/cursos");
         exit;
     }

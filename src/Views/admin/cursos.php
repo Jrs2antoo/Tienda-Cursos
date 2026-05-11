@@ -23,12 +23,13 @@
                             <th>Título</th>
                             <th>Precio</th>
                             <th>Stock</th>
+                            <th>Estado</th>
                             <th class="text-end pe-4">Acciones</th>
                         </tr>
                         </thead>
                         <tbody>
                         <?php foreach ($courses as $c): ?>
-                            <tr>
+                            <tr class="<?= !$c->activo ? 'table-secondary text-muted' : '' ?>">
                                 <td class="ps-4 text-muted small">#<?= $c->id ?></td>
                                 <td class="fw-semibold"><?= htmlspecialchars($c->title) ?></td>
                                 <td class="text-primary fw-semibold"><?= number_format($c->price, 2) ?> €</td>
@@ -37,18 +38,38 @@
                                         <?= $c->stock ?>
                                     </span>
                                 </td>
+                                <td>
+                                    <?php if ($c->activo): ?>
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="bi bi-eye me-1"></i>Activo
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            <i class="bi bi-eye-slash me-1"></i>Inactivo
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="text-end pe-4">
                                     <a href="/tiendaCursos/admin/cursos/editar?id=<?= $c->id ?>"
                                        class="btn btn-sm btn-outline-primary me-1">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form method="POST" action="/tiendaCursos/admin/cursos/borrar" class="d-inline"
-                                          onsubmit="return confirm('¿Borrar este curso?')">
-                                        <input type="hidden" name="id" value="<?= $c->id ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <?php if ($c->activo): ?>
+                                        <form method="POST" action="/tiendaCursos/admin/cursos/borrar" class="d-inline"
+                                              onsubmit="return confirm('¿Desactivar este curso? Los usuarios que ya lo compraron seguirán teniéndolo.')">
+                                            <input type="hidden" name="id" value="<?= $c->id ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Desactivar">
+                                                <i class="bi bi-eye-slash"></i>
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <form method="POST" action="/tiendaCursos/admin/cursos/borrar" class="d-inline">
+                                            <input type="hidden" name="id" value="<?= $c->id ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Reactivar">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

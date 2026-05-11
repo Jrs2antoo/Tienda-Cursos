@@ -48,6 +48,7 @@ $router->get("/confirmar-cuenta", [AuthController::class, "confirmarCuenta"]);
 $router->get('/carrito', [CarritoController::class, 'index']);
 $router->post('/carrito/add', [CarritoController::class, 'add']);
 $router->post('/carrito/eliminar', [CarritoController::class, 'eliminar']);
+$router->post('/carrito/vaciar', [CarritoController::class, 'vaciar']);
 
 //Admin
 $router->get('/admin', [AdminController::class, 'index']);

@@ -87,48 +87,6 @@ class Email {
     }
 
     /**
-     * Envía un email de agradecimiento tras completar una compra.
-     *
-     * @param Curso[] $cursos  Cursos adquiridos en la compra
-     */
-    public function enviarCompra(array $cursos): void
-    {
-        $mail = new PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host       = $_ENV['SMTP_HOST'];
-        $mail->SMTPAuth   = true;
-        $mail->Port       = 465;
-        $mail->Username   = $_ENV['SMTP_USER'];
-        $mail->Password   = $_ENV['SMTP_PASS'];
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Timeout    = 5;
-
-        $mail->setFrom($_ENV['SMTP_USER'], $_ENV['SMTP_NAME']);
-        $mail->addAddress($this->email, $this->nombre);
-        $mail->Subject = 'Gracias por tu compra en TiendaCursos!';
-        $mail->isHTML(true);
-        $mail->CharSet = 'UTF-8';
-
-        $listaCursos = '';
-        foreach ($cursos as $c) {
-            $listaCursos .= '<li>' . htmlspecialchars($c->title) . '</li>';
-        }
-
-        $mail->Body = "
-            <h2>Gracias por tu compra, {$this->nombre}!</h2>
-            <p>Hemos procesado tu pedido correctamente. Ya puedes acceder a tus cursos:</p>
-            <ul>{$listaCursos}</ul>
-            <p>Un saludo,<br><strong>El equipo de TiendaCursos</strong></p>
-        ";
-
-        try {
-            $mail->send();
-        } catch (\Throwable $e) {
-            error_log('Error enviando email de compra: ' . $e->getMessage());
-        }
-    }
-
-    /**
      * Envía la factura de compra como adjunto PDF.
      *
      * @param string $pdfBytes  Contenido binario del PDF (salida de FacturaPdf::generar())

@@ -4,7 +4,7 @@ namespace Jrs2a\TiendaCursos\Core;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-class FacturaPdf
+class Facturapdf
 {
     public static function generar(string $nombre, string $email, array $cursos): string
     {

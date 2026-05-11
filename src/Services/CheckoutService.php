@@ -3,7 +3,7 @@ namespace Jrs2a\TiendaCursos\Services;
 
 use Jrs2a\TiendaCursos\Repositories\UsuarioRepository;
 use Jrs2a\TiendaCursos\Core\Email;
-use Jrs2a\TiendaCursos\Core\FacturaPdf;
+use Jrs2a\TiendaCursos\Core\Facturapdf;
 
 class CheckoutService
 {

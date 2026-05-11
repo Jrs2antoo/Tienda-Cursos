@@ -19,6 +19,12 @@ class CursoService
         return $this->cursoRepository->findAll();
     }
 
+    /** @return Curso[] Incluye inactivos — solo para el panel admin */
+    public function obtenerTodosAdmin(): array
+    {
+        return $this->cursoRepository->findAllAdmin();
+    }
+
     /** @return Curso[] */
     public function obtenerDestacados(int $limit = 2): array
     {
@@ -40,8 +46,15 @@ class CursoService
         return $this->cursoRepository->update($id, $title, $description, $price, $stock, $imageUrl);
     }
 
+    /** Borrado lógico: desactiva el curso sin eliminar compras históricas */
     public function eliminar(int $id): void
     {
-        $this->cursoRepository->delete($id);
+        $this->cursoRepository->desactivar($id);
+    }
+
+    /** Reactiva un curso previamente desactivado */
+    public function reactivar(int $id): void
+    {
+        $this->cursoRepository->activar($id);
     }
 }

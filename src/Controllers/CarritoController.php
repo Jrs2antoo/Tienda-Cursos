@@ -47,13 +47,21 @@ class CarritoController
 
     public function eliminar(): void
     {
-        Middleware::requireLogin();
+        Middleware::requireLogFin();
         $courseId = (int)($_POST['curso_id'] ?? 0);
 
         if ($courseId > 0) {
             $this->carritoService->eliminar((int)$_SESSION['user_id'], $courseId);
         }
 
+        header("Location: /tiendaCursos/carrito");
+        exit;
+    }
+
+    public function vaciar(): void
+    {
+        Middleware::requireLogin();
+        $this->carritoService->vaciar((int)$_SESSION['user_id']);
         header("Location: /tiendaCursos/carrito");
         exit;
     }

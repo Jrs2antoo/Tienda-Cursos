@@ -14,8 +14,20 @@ class CursoRepository
         $this->db = Database::connect();
     }
 
-    /** @return Curso[] */
+    /** @return Curso[] Solo cursos activos (para la tienda pública) */
     public function findAll(): array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM courses WHERE activo = 1 ORDER BY id DESC");
+        $stmt->execute();
+
+        return array_map(
+            fn($row) => new Curso($row),
+            $stmt->fetchAll(PDO::FETCH_ASSOC)
+        );
+    }
+
+    /** @return Curso[] Todos los cursos incluyendo inactivos (para el panel admin) */
+    public function findAllAdmin(): array
     {
         $stmt = $this->db->prepare("SELECT * FROM courses ORDER BY id DESC");
         $stmt->execute();
@@ -29,7 +41,7 @@ class CursoRepository
     /** @return Curso[] */
     public function findAllLimit(int $limit): array
     {
-        $stmt = $this->db->prepare("SELECT * FROM courses LIMIT ?");
+        $stmt = $this->db->prepare("SELECT * FROM courses WHERE activo = 1 LIMIT ?");
         $stmt->bindValue(1, $limit, PDO::PARAM_INT);
         $stmt->execute();
         return array_map(fn($row) => new Curso($row), $stmt->fetchAll(PDO::FETCH_ASSOC));
@@ -74,13 +86,21 @@ class CursoRepository
         return $stmt->execute();
     }
 
-    public function delete(int $id): void
+    /**
+     * Borrado lógico: marca el curso como inactivo.
+     * No elimina compras ni datos históricos.
+     */
+    public function desactivar(int $id): void
     {
-        $stmt = $this->db->prepare("DELETE FROM purchases WHERE course_id = :id");
+        $stmt = $this->db->prepare("UPDATE courses SET activo = 0 WHERE id = :id");
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
+    }
 
-        $stmt = $this->db->prepare("DELETE FROM courses WHERE id = :id");
+    /** Reactiva un curso previamente desactivado */
+    public function activar(int $id): void
+    {
+        $stmt = $this->db->prepare("UPDATE courses SET activo = 1 WHERE id = :id");
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
     }

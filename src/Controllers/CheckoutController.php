@@ -19,14 +19,6 @@ class CheckoutController
         $this->pages           = new Pages();
     }
 
-    private function requireLogin(): void
-    {
-        if (empty($_SESSION['user_id'])) {
-            header("Location: /tiendaCursos/login");
-            exit;
-        }
-    }
-
     public function index(): void
     {
         Middleware::requireLogin();
